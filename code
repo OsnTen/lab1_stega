@@ -1,1 +1,52 @@
-1
+import docx
+from bitstring import BitArray
+from mtk_2_codec import *
+
+class lab1_stega():
+
+    def __init__(self, doc_path):
+        self.doc = docx.Document(doc_path)
+
+    def find_elemets(self):
+        paragraphs = list(self.doc.paragraphs)
+        str_bytes = ''
+        charm = []
+        for i in range(len(paragraphs)):
+            runs = paragraphs[i].runs 
+            for j in range(len(runs)): 
+                if str(runs[j].font.color.rgb) == "010101":
+                    bytes = '1' * len(runs[j].text)
+                    str_bytes += bytes
+                else:
+                    bytes = '0' * len(runs[j].text)
+                    str_bytes += bytes
+                charm.append({bytes: runs[j].text})
+        return str_bytes, charm
+
+    def decrypt(self):
+        str_bytes = self.find_elemets()[0]
+        bytes = BitArray(bin=str_bytes).tobytes()
+        print('Windows1251: {}'.format(bytes.decode('cp1251')))
+        print('CP866: {}'.format(bytes.decode('cp866')))
+        print('KOI8-R: {}'.format(bytes.decode('koi8-r')))
+        print('MTK2: {}'.format(MTK2().decode(str_bytes)))
+        return
+
+    def print_str_bytes(self):
+        str_bytes = self.find_elemets()[0]
+        return str_bytes
+   
+    def print_paragrah(self):
+        charm = self.find_elemets()[1]
+        charm_str = ''
+        for item in charm:
+            charm_str += '{}({})'.format(list(item.values())[0], list(item.keys())[0])
+        return charm_str
+
+
+
+lab1_stega = lab1_stega('variant08.docx')
+lab1_stega.decrypt()
+print("Paragraphs:", lab1_stega.print_paragrah())
+print("Bytes:", lab1_stega.print_str_bytes())
+
